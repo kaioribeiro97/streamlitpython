@@ -161,24 +161,19 @@ if st.button("Processar"):
                     resultado_df['Volume Total'] = pd.to_numeric(resultado_df['Volume Total'], errors='coerce')
                     resultado_df = resultado_df.sort_values(by='DataHora')
                     # Criar gráfico Altair# Reformatar o DataFrame para múltiplas linhas (long format)
-                    df_long = resultado_df.melt(
-                        id_vars=['DataHora'],
-                        value_vars=['Pressão', 'Volume Total'],
-                        var_name='Métrica',
-                        value_name='Valor'
+                      # Criar gráfico Altair
+                    chart = alt.Chart(resultado_df).mark_line().encode(
+                        x=alt.X('DataHora:T', title='Data e Hora'),
+                        y=alt.Y('Pressão:Q', title='Pressão (mca)'),
+                        tooltip=['DataHora', 'Pressão']
+                    ).properties(
+                        width=500,
+                        height=600,
+                        # title="Gráfico de Pressão ao Longo do Tempo"
                     )
-                    chart = alt.Chart(df_long).mark_line().encode(
-            x=alt.X('DataHora:T', title='Data e Hora'),
-            y=alt.Y('Valor:Q', title='Valores'),
-            color=alt.Color('Métrica:N', title='Legenda'),  # Adiciona legenda para diferenciar as linhas
-            tooltip=['DataHora:T', 'Métrica:N', 'Valor:Q']
-        ).properties(
-            width=200,
-            height=400,
-            # title="Gráfico de Pressão e Volume ao Longo do Tempo"
-        )
                     # Renderizar gráfico no Streamlit
                     st.altair_chart(chart, use_container_width=True)
+
 
 
                 else:
