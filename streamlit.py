@@ -183,6 +183,26 @@ if st.button("Processar"):
 
                 else:
                     st.warning("As colunas 'DataHora', 'Pressão_mca' e/ou 'Volume Total' não estão presentes no arquivo enviado.")
+            if tipo_datalogger == "Lamon" and 'Pressão_mca' in resultado_df.columns:
+                            min_val = resultado_df['Pressão_mca'].min()
+                            max_val = resultado_df['Pressão_mca'].max()
+                            mean_val = resultado_df['Pressão_mca'].mean()
 
+                            # Exibir os valores calculados
+                            st.write("### Estatísticas da Pressão (mca)")
+                            st.write(f"**Valor Mínimo:** {min_val:.2f}")
+                            st.write(f"**Valor Máximo:** {max_val:.2f}")
+                            st.write(f"**Média:** {mean_val:.2f}")
+
+            elif tipo_datalogger == "Sanesoluti" and 'Pressão' in resultado_df.columns:
+                min_val = resultado_df['Pressão'].min()
+                max_val = resultado_df['Pressão'].max()
+                mean_val = resultado_df['Pressão'].mean()
+
+                # Exibir os valores calculados
+                st.write("### Estatísticas da Pressão")
+                st.write(f"**Valor Mínimo:** {min_val:.2f}")
+                st.write(f"**Valor Máximo:** {max_val:.2f}")
+                st.write(f"**Média:** {mean_val:.2f}")
     else:
         st.error("Por favor, faça upload de um arquivo e selecione um tipo de DataLogger.")
