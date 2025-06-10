@@ -49,6 +49,21 @@ def processar_dados(tipo_datalogger, arquivo):
                 df['Pressão'] = df['Pressão'].astype(float).round(2)
                 df['Volume Total'] = df['Volume Total'].astype(float).round(2)
 
+        elif tipo_datalogger == "Sanesoluti V.2":
+    # Converter a coluna 'Data' para datetime se ainda não estiver no formato
+            df['Data'] = pd.to_datetime(df['Data'], dayfirst=True)
+            
+            # Converter a coluna 'Hora' de fração do dia para timedelta
+            df['Hora'] = pd.to_numeric(df['Hora'], errors='coerce')  # Garante que é float
+            df['Hora'] = pd.to_timedelta(df['Hora'] * 24, unit='h')  # Multiplica por 24 para transformar em horas
+            
+            df['DataHora'] = df['Data'] + df['Hora']
+
+            if 'Pressão' in df.columns and 'Volume G' in df.columns:
+                # Ajustar os valores de Pressão e Volume Total
+                df['Pressão'] = df['Pressão'].astype(float).round(2)
+                df['Volume G'] = df['Volume G'].astype(float).round(2)
+
         return df
 
 
@@ -95,7 +110,7 @@ st.title("Processador de Arquivos DataLogger")
 arquivo = st.file_uploader("Faça upload do arquivo (.csv, .xls, .xlsx)", type=["csv", "xls", "xlsx"])
 
 # Seleção do tipo de DataLogger
-tipos_datalogger = ["Lamon", "Sanesoluti", "Vectora"]
+tipos_datalogger = ["Lamon", "Sanesoluti", "Sanesoluti V.2" ,"Vectora"]
 
 tipo_datalogger = st.selectbox("Selecione o tipo de DataLogger", tipos_datalogger)
 if arquivo is not None and tipo_datalogger:
@@ -124,6 +139,7 @@ if st.button("Processar"):
        # Define a data padrão (por exemplo, a data atual)
 
     if resultado_df is not None:
+            st.dataframe(resultado_df)
 
             # Exibir os dados processados
             st.success("Dados processados com sucesso!")
@@ -173,7 +189,26 @@ if st.button("Processar"):
                     )
                     # Renderizar gráfico no Streamlit
                     st.altair_chart(chart, use_container_width=True)
+            elif tipo_datalogger == "Sanesoluti V.2":
+                # Verificar se as colunas necessárias estão presentes no DataFrame para gerar o gráfico
+                
+                if 'DataHora' in resultado_df.columns and 'Pressão ' in resultado_df.columns and 'Volume G ' in resultado_df.columns:
+                    resultado_df['DataHora'] = pd.to_datetime(resultado_df['DataHora'], dayfirst=True, errors='coerce')
+                    resultado_df['Pressão '] = pd.to_numeric(resultado_df['Pressão '], errors='coerce')
+                    resultado_df['Volume G '] = pd.to_numeric(resultado_df['Volume G '], errors='coerce')
+                    resultado_df = resultado_df.sort_values(by='DataHora')
 
+                    # Formatando o eixo X para exibir dia e hora
+                    chart = alt.Chart(resultado_df).mark_line().encode(
+                        x=alt.X('DataHora:T', title='Data e Hora', axis=alt.Axis(format="%d/%m %H:%M")),
+                        y=alt.Y('Pressão :Q', title='Pressão (mca)'),
+                        tooltip=['DataHora', 'Pressão ']
+                    ).properties(
+                        width=500,
+                        height=600,
+                    )
+
+                    st.altair_chart(chart, use_container_width=True)
 
 
                 else:
