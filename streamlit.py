@@ -189,25 +189,57 @@ if st.button("Processar"):
                     )
                     # Renderizar gráfico no Streamlit
                     st.altair_chart(chart, use_container_width=True)
-            elif tipo_datalogger == "Sanesoluti V.2":
-                # Verificar se as colunas necessárias estão presentes no DataFrame para gerar o gráfico
+            # elif tipo_datalogger == "Sanesoluti V.2":
+            #     # Verificar se as colunas necessárias estão presentes no DataFrame para gerar o gráfico
                 
+            #     if 'DataHora' in resultado_df.columns and 'Pressão ' in resultado_df.columns and 'Volume G ' in resultado_df.columns:
+            #         resultado_df['DataHora'] = pd.to_datetime(resultado_df['DataHora'], dayfirst=True, errors='coerce')
+            #         resultado_df['Pressão '] = pd.to_numeric(resultado_df['Pressão '], errors='coerce')
+            #         resultado_df['Volume G '] = pd.to_numeric(resultado_df['Volume G '], errors='coerce')
+            #         resultado_df = resultado_df.sort_values(by='DataHora')
+
+            #         # Formatando o eixo X para exibir dia e hora
+            #         chart = alt.Chart(resultado_df).mark_line().encode(
+            #             x=alt.X('DataHora:T', title='Data e Hora', axis=alt.Axis(format="%d/%m %H:%M")),
+            #             y=alt.Y('Pressão :Q', title='Pressão (mca)'),
+            #             tooltip=['DataHora', 'Pressão ']
+            #         ).properties(
+            #             width=500,
+            #             height=600,
+            #         )
+
+            #         st.altair_chart(chart, use_container_width=True)
+            elif tipo_datalogger == "Sanesoluti V.2":
                 if 'DataHora' in resultado_df.columns and 'Pressão ' in resultado_df.columns and 'Volume G ' in resultado_df.columns:
+                    # Pré-processamento dos dados
                     resultado_df['DataHora'] = pd.to_datetime(resultado_df['DataHora'], dayfirst=True, errors='coerce')
-                    resultado_df['Pressão '] = pd.to_numeric(resultado_df['Pressão '], errors='coerce')
-                    resultado_df['Volume G '] = pd.to_numeric(resultado_df['Volume G '], errors='coerce')
+                    resultado_df['Pressão '] = pd.to_numeric(resultado_df['Pressão '], errors='coerce').dropna()
+                    resultado_df['Volume G '] = pd.to_numeric(resultado_df['Volume G '], errors='coerce').dropna()
                     resultado_df = resultado_df.sort_values(by='DataHora')
 
-                    # Formatando o eixo X para exibir dia e hora
-                    chart = alt.Chart(resultado_df).mark_line().encode(
-                        x=alt.X('DataHora:T', title='Data e Hora', axis=alt.Axis(format="%d/%m %H:%M")),
-                        y=alt.Y('Pressão :Q', title='Pressão (mca)'),
-                        tooltip=['DataHora', 'Pressão ']
+                    # Cálculo dos limites do eixo Y
+                    min_pressao = resultado_df['Pressão '].min()
+                    max_pressao = resultado_df['Pressão '].max()
+
+                    # Criação do gráfico
+                    chart = alt.Chart(resultado_df).mark_line(point=True).encode(
+                        x=alt.X('DataHora:T',
+                            title='Data e Hora',
+                            axis=alt.Axis(
+                                format="%d/%m %H:%M",
+                                labelAngle=-90,  # Rótulos na vertical
+                                tickCount=72
+                            )
+                        ),
+                        y=alt.Y('Pressão :Q', 
+                            title='Pressão (mca)',
+                            scale=alt.Scale(domain=[min_pressao, max_pressao])),
+                        tooltip=[alt.Tooltip('DataHora:T', format='%d/%m/%Y %H:%M'), 'Pressão ']
                     ).properties(
                         width=500,
-                        height=600,
+                        height=600
                     )
-
+                    
                     st.altair_chart(chart, use_container_width=True)
 
 
